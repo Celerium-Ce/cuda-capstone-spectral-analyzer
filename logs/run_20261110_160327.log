@@ -1,0 +1,29 @@
+GPU Specialization Capstone - Batch Audio Spectral Analyzer
+Device: NVIDIA L4
+Files to process: 18
+Frame size: 1024, hop size: 512, streams: 4
+---
+  [OK] data/input/chirp_0200to2000hz.wav -> output/chirp_0200to2000hz.csv (61 frames x 513 bins, 0.207840 ms) [stream 0]
+  [OK] data/input/chirp_0500to5000hz.wav -> output/chirp_0500to5000hz.csv (61 frames x 513 bins, 0.052128 ms) [stream 1]
+  [OK] data/input/chirp_3000to0500hz.wav -> output/chirp_3000to0500hz.csv (61 frames x 513 bins, 0.050176 ms) [stream 2]
+  [OK] data/input/noisy_0440hz.wav -> output/noisy_0440hz.csv (61 frames x 513 bins, 0.052192 ms) [stream 3]
+  [OK] data/input/noisy_1000hz.wav -> output/noisy_1000hz.csv (61 frames x 513 bins, 0.042656 ms) [stream 0]
+  [OK] data/input/noisy_2000hz.wav -> output/noisy_2000hz.csv (61 frames x 513 bins, 0.040960 ms) [stream 1]
+  [OK] data/input/tone_0220hz.wav -> output/tone_0220hz.csv (61 frames x 513 bins, 0.036800 ms) [stream 2]
+  [OK] data/input/tone_0440hz.wav -> output/tone_0440hz.csv (61 frames x 513 bins, 0.042112 ms) [stream 3]
+  [OK] data/input/tone_0880hz.wav -> output/tone_0880hz.csv (61 frames x 513 bins, 0.042592 ms) [stream 0]
+  [OK] data/input/tone_1760hz.wav -> output/tone_1760hz.csv (61 frames x 513 bins, 0.043104 ms) [stream 1]
+  [OK] data/input/tone_2500hz.wav -> output/tone_2500hz.csv (61 frames x 513 bins, 0.042080 ms) [stream 2]
+  [OK] data/input/tone_3200hz.wav -> output/tone_3200hz.csv (61 frames x 513 bins, 0.041920 ms) [stream 3]
+  [OK] data/input/tone_4400hz.wav -> output/tone_4400hz.csv (61 frames x 513 bins, 0.050912 ms) [stream 0]
+  [OK] data/input/tone_5500hz.wav -> output/tone_5500hz.csv (61 frames x 513 bins, 0.040928 ms) [stream 1]
+  [OK] data/input/two_tone_0220_0880hz.wav -> output/two_tone_0220_0880hz.csv (61 frames x 513 bins, 0.043264 ms) [stream 2]
+  [OK] data/input/two_tone_0440_0660hz.wav -> output/two_tone_0440_0660hz.csv (61 frames x 513 bins, 0.040704 ms) [stream 3]
+  [OK] data/input/two_tone_1000_1500hz.wav -> output/two_tone_1000_1500hz.csv (61 frames x 513 bins, 0.050112 ms) [stream 0]
+  [OK] data/input/white_noise.wav -> output/white_noise.csv (61 frames x 513 bins, 0.040736 ms) [stream 1]
+---
+Processed 18/18 files successfully.
+Total STFT frames computed: 1098
+Total wall-clock time: 2619.908439 ms
+Sum of per-file GPU times: 0.961216 ms
+Throughput: 419.098616 frames/sec
