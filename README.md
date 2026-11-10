@@ -147,28 +147,52 @@ stdout and `--log`.
 
 ## Proof of execution
 
-A run populates:
+`output/*.csv` (18 spectrograms) and `logs/run_20261110_160327.log` are
+committed in this repo from a real run on an **NVIDIA L4** GPU in the
+Coursera lab: all 18/18 files processed successfully, 1098 STFT frames
+computed in total, 0.96 ms of summed per-file GPU time against 2.6 s of
+wall-clock (see "cuFFT plan overhead" in lessons learned below for why
+those two numbers are so far apart — it's a real finding, not a bug).
 
-- `output/*.csv` — one spectrogram per successfully processed input file.
-- `logs/run*.log` — the GPU device name, a line per file with its frame
-  count, bin count, and processing time in milliseconds, and a summary
-  with total files processed, total STFT frames computed, wall-clock
-  time, and throughput.
+**Verified against the sanity check below:** `output/tone_0440hz.csv`'s
+loudest bin, averaged across its 61 frames, lands at 437.5 Hz (the bin
+closest to the injected 440 Hz) at 43.6 dB, against a noise floor around
+-115 dB.
 
-**Sanity-checking the output:** for any `tone_NNNNhz.wav` file, the
-loudest bin in its output CSV should sit at (or one bin away from) the
-frequency named in the filename — e.g. `tone_0440hz.wav`'s spectrogram
-should peak at the 440 Hz column. This was verified against an equivalent
-NumPy STFT prototype before writing the CUDA code (see "Toolchain note"
-below): a synthetic 1000 Hz tone's spectrogram peaked in the exact bin
-`1000 Hz` maps to, about 48 dB above a noise floor around -114 dB.
+**Sanity-checking the output yourself:** for any `tone_NNNNhz.wav` file,
+the loudest bin in its output CSV should sit at (or one bin away from)
+the frequency named in the filename.
+
+```bash
+python3 -c "
+import csv
+with open('output/tone_0440hz.csv') as f:
+    reader = csv.reader(f)
+    header = next(reader)
+    freqs = [float(x) for x in header[1:]]
+    sums = [0.0] * len(freqs)
+    count = 0
+    for row in reader:
+        for i, v in enumerate(row[1:]):
+            sums[i] += float(v)
+        count += 1
+    avg = [s / count for s in sums]
+    peak_i = avg.index(max(avg))
+    print('peak frequency:', freqs[peak_i], 'Hz (expected close to 440)')
+"
+```
+
+This matches an equivalent NumPy STFT prototype run before writing the
+CUDA code (see "Toolchain note" below): a synthetic 1000 Hz tone's
+spectrogram peaked in the exact bin `1000 Hz` maps to, about 48 dB above
+a noise floor around -114 dB.
 
 **Toolchain note:** this repository was authored on a Windows machine
 with no CUDA Toolkit (`nvcc`) installed (it has an NVIDIA GPU, but lacks
 the toolkit), so the code itself could not be built there. It was instead
 built and run on a standard CUDA Linux environment — the Coursera lab
-terminal. To reproduce, build and run this project on any machine with
-`nvcc` and cuFFT available:
+terminal, producing the committed `output/` and `logs/` artifacts above.
+To reproduce:
 
 ```bash
 make
@@ -187,6 +211,18 @@ tar -czf proof_of_execution.tar.gz output logs
 
 ## Lessons learned / design notes
 
+- **cuFFT plan overhead dominates at this scale.** The real lab run logged
+  only 0.96 ms of *summed per-file GPU time* across all 18 files, but 2.6
+  seconds of wall-clock time for the whole batch. The gap is
+  `cufftPlan1d`/`cufftDestroy`: they run once per file, outside the timed
+  `cudaEvent` window, and plan creation does real host-side setup work
+  (picking an FFT factorization strategy, allocating cuFFT's internal
+  scratch space) that costs far more than the window+FFT+magnitude kernels
+  themselves do once the plan exists. A clear next step: cache one plan
+  per distinct `(frame_size, num_frames)` pair and reuse it across files
+  that share those dimensions, instead of creating and destroying one per
+  file — all 18 synthetic signals here are the same length, so a single
+  cached plan would have covered the entire batch.
 - `cufftPlan1d(..., CUFFT_R2C, num_frames)` treats `num_frames` back-to-back
   1D transforms as one batched plan over contiguous memory, which matches
   the windowing kernel's output layout exactly (`num_frames x frame_size`,
