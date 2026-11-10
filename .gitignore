@@ -1,0 +1,7 @@
+bin/obj/
+bin/spectral_analyzer
+bin/*.o
+*.o
+
+output/*.csv
+logs/*.log
